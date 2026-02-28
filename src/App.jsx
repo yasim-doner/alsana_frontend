@@ -1,61 +1,61 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
 
 const mockComputers = [
   {
     id: 1,
     name: 'MacBook Pro 16"',
-    specs: 'M3 Max, 36GB RAM, 512GB SSD',
-    price: '$3,499',
-    category: 'Laptop',
-    icon: '💻'
+    specs: "M3 Max, 36GB RAM, 512GB SSD",
+    price: "$3,499",
+    category: "Laptop",
+    icon: "💻",
   },
   {
     id: 2,
-    name: 'Dell XPS 15',
-    specs: 'RTX 4090, Intel i9, 32GB RAM, 1TB SSD',
-    price: '$2,799',
-    category: 'Gaming Laptop',
-    icon: '🎮'
+    name: "Dell XPS 15",
+    specs: "RTX 4090, Intel i9, 32GB RAM, 1TB SSD",
+    price: "$2,799",
+    category: "Gaming Laptop",
+    icon: "🎮",
   },
   {
     id: 3,
-    name: 'Thinkpad X1 Carbon',
+    name: "Thinkpad X1 Carbon",
     specs: 'Intel i7, 16GB RAM, 512GB SSD, 14" Display',
-    price: '$1,599',
-    category: 'Business',
-    icon: '💼'
-  }
-]
+    price: "$1,599",
+    category: "Business",
+    icon: "💼",
+  },
+];
 
 function App() {
-  const [search, setSearch] = useState('')
-  const [results, setResults] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [searched, setSearched] = useState(false)
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   const handleSearch = async (e) => {
-    e.preventDefault()
-    if (!search.trim()) return
+    e.preventDefault();
+    if (!search.trim()) return;
 
-    setLoading(true)
-    setResults([])
+    setLoading(true);
+    setResults([]);
 
     // Simulate API call with 2-3 second delay
     setTimeout(() => {
-      setResults(mockComputers)
-      setLoading(false)
-      setSearched(true)
-    }, 2000)
+      setResults(mockComputers);
+      setLoading(false);
+      setSearched(true);
+    }, 2000);
 
-    setSearch('')
-  }
+    setSearch("");
+  };
 
   const handleNewSearch = () => {
-    setSearch('')
-    setResults([])
-    setSearched(false)
-  }
+    setSearch("");
+    setResults([]);
+    setSearched(false);
+  };
 
   return (
     <div className="app">
@@ -74,20 +74,17 @@ function App() {
           disabled={loading}
         />
         <button type="submit" className="search-button" disabled={loading}>
-          {loading ? (
-            <span className="loader"></span>
-          ) : (
-            '🔍'
-          )}
+          {loading ? <span className="loader"></span> : "🔍"}
         </button>
       </form>
 
       {loading && (
         <div className="loading-state">
-          <div className="thinking">
-            <div className="pulse"></div>
-            <p>AI'ya soruluyor...</p>
-          </div>
+          <img
+            src="/BD_Yeni.webp"
+            alt="Alsana Loading"
+            className="alsana-loading"
+          />
         </div>
       )}
 
@@ -95,10 +92,7 @@ function App() {
         <div className="results-container">
           <div className="results-header">
             <h2>Önerilen Bilgisayarlar</h2>
-            <button 
-              onClick={handleNewSearch} 
-              className="new-search-btn"
-            >
+            <button onClick={handleNewSearch} className="new-search-btn">
               + Yeni Arama
             </button>
           </div>
@@ -134,13 +128,14 @@ function App() {
               disabled={loading}
             />
             <button type="submit" className="search-button" disabled={loading}>
-              {loading ? (
-                <span className="loader"></span>
-              ) : (
-                '🔍'
-              )}
+              {loading ? <span className="loader"></span> : "🔍"}
             </button>
           </form>
+
+          <div className="alsana-section">
+            <img src="/BD_Yeni.webp" alt="Alsana" className="alsana-image" />
+            <p className="alsana-text">Alsana ✨</p>
+          </div>
         </div>
       )}
 
@@ -150,7 +145,7 @@ function App() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
