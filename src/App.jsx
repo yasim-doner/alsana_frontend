@@ -1,38 +1,35 @@
 import { useState } from "react";
 import "./App.css";
 
-const mockComputers = [
-  {
-    id: 1,
-    name: 'MacBook Pro 16"',
-    specs: "M3 Max, 36GB RAM, 512GB SSD",
-    price: "$3,499",
-    category: "Laptop",
-    icon: "💻",
-  },
-  {
-    id: 2,
-    name: "Dell XPS 15",
-    specs: "RTX 4090, Intel i9, 32GB RAM, 1TB SSD",
-    price: "$2,799",
-    category: "Gaming Laptop",
-    icon: "🎮",
-  },
-  {
-    id: 3,
-    name: "Thinkpad X1 Carbon",
-    specs: 'Intel i7, 16GB RAM, 512GB SSD, 14" Display',
-    price: "$1,599",
-    category: "Business",
-    icon: "💼",
-  },
-];
+const API_URL = "http://localhost:5000";
+
+// Benzerlik mesafesini yüzdeye çevir (düşük mesafe = yüksek eşleşme)
+function getMatchPercent(distance) {
+  const percent = Math.max(0, Math.min(100, (1 - distance) * 100));
+  return percent.toFixed(0);
+}
+
+// Marka adına göre ikon belirle
+function getBrandIcon(name) {
+  const n = name.toLowerCase();
+  if (n.includes("apple") || n.includes("mac")) return "🍎";
+  if (n.includes("dell") || n.includes("alienware")) return "💻";
+  if (n.includes("hp") || n.includes("hewlett")) return "🖥️";
+  if (n.includes("lenovo") || n.includes("thinkpad")) return "💼";
+  if (n.includes("asus") || n.includes("rog")) return "⚡";
+  if (n.includes("acer")) return "🖱️";
+  if (n.includes("msi")) return "🎮";
+  if (n.includes("razer")) return "🐍";
+  if (n.includes("surface") || n.includes("microsoft")) return "🪟";
+  return "💻";
+}
 
 function App() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -40,21 +37,37 @@ function App() {
 
     setLoading(true);
     setResults([]);
+    setError("");
 
-    // Simulate API call with 2-3 second delay
-    setTimeout(() => {
-      setResults(mockComputers);
-      setLoading(false);
+    try {
+      const res = await fetch(
+        `${API_URL}/search?q=${encodeURIComponent(search.trim())}`,
+      );
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Sunucu hatası (${res.status})`);
+      }
+
+      const data = await res.json();
+      setResults(data);
       setSearched(true);
-    }, 2000);
-
-    setSearch("");
+    } catch (err) {
+      console.error("Arama hatası:", err);
+      setError(
+        err.message === "Failed to fetch"
+          ? "Sunucuya bağlanılamadı. Backend çalışıyor mu?"
+          : err.message,
+      );
+      setSearched(true);
+    } finally {
+      setLoading(false);
+      setSearch("");
+    }
   };
 
   const handleNewSearch = () => {
-    setSearch("");
-    setResults([]);
-    setSearched(false);
+    window.location.reload();
   };
 
   return (
@@ -64,27 +77,36 @@ function App() {
         <p className="subtitle">AI Destekli Bilgisayar Arama Platformu</p>
       </div>
 
-      <form onSubmit={handleSearch} className="search-container">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Örn: Gaming Laptop, 32GB RAM, Ucuz..."
-          className="search-input"
-          disabled={loading}
-        />
-        <button type="submit" className="search-button" disabled={loading}>
-          {loading ? <span className="loader"></span> : "🔍"}
-        </button>
-      </form>
+      {!searched && (
+        <form onSubmit={handleSearch} className="search-container">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Örn: Gaming Laptop, Office Computer, Budget PC..."
+            className="search-input"
+            disabled={loading}
+            maxLength={200}
+          />
+          <button type="submit" className="search-button" disabled={loading}>
+            {loading ? <span className="loader"></span> : "🔍"}
+          </button>
+        </form>
+      )}
 
       {loading && (
         <div className="loading-state">
-          <img
-            src="/BD_Yeni.webp"
-            alt="Alsana Loading"
-            className="alsana-loading"
-          />
+          <span className="loader-big"></span>
+          <p className="loading-text">Aranıyor...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-state">
+          <p className="error-text">⚠️ {error}</p>
+          <button onClick={handleNewSearch} className="new-search-btn">
+            Tekrar Dene
+          </button>
         </div>
       )}
 
@@ -93,49 +115,47 @@ function App() {
           <div className="results-header">
             <h2>Önerilen Bilgisayarlar</h2>
             <button onClick={handleNewSearch} className="new-search-btn">
-              + Yeni Arama
+              Yeni Sorgu
             </button>
           </div>
 
           <div className="computers-grid">
-            {results.map((computer, index) => (
+            {results.map((item, index) => (
               <div
-                key={computer.id}
+                key={index}
                 className="computer-card"
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className="card-header">
-                  <span className="icon">{computer.icon}</span>
-                  <span className="category">{computer.category}</span>
+                  <span className="icon">{getBrandIcon(item.name)}</span>
+                  <span className="match-badge">
+                    %{getMatchPercent(item.distance)} Eşleşme
+                  </span>
                 </div>
-                <h3 className="computer-name">{computer.name}</h3>
-                <p className="specs">{computer.specs}</p>
+                <h3 className="computer-name">{item.name}</h3>
+                <p className="specs">{item.description}</p>
                 <div className="card-footer">
-                  <span className="price">{computer.price}</span>
-                  <button className="view-btn">Detay</button>
+                  <div className="distance-bar">
+                    <div
+                      className="distance-fill"
+                      style={{
+                        width: `${getMatchPercent(item.distance)}%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      )}
 
-          <form onSubmit={handleSearch} className="follow-up-container">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Başka bir arama yap..."
-              className="search-input"
-              disabled={loading}
-            />
-            <button type="submit" className="search-button" disabled={loading}>
-              {loading ? <span className="loader"></span> : "🔍"}
-            </button>
-          </form>
-
-          <div className="alsana-section">
-            <img src="/BD_Yeni.webp" alt="Alsana" className="alsana-image" />
-            <p className="alsana-text">Alsana ✨</p>
-          </div>
+      {searched && results.length === 0 && !error && !loading && (
+        <div className="empty-state">
+          <p>Sonuç bulunamadı. Farklı bir arama deneyin.</p>
+          <button onClick={handleNewSearch} className="new-search-btn">
+            Yeni Arama
+          </button>
         </div>
       )}
 
