@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://api.alsana.site";
 
 // Benzerlik mesafesini yüzdeye çevir (düşük mesafe = yüksek eşleşme)
 function getMatchPercent(distance) {
