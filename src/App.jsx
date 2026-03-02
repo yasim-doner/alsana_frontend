@@ -11,14 +11,15 @@ function getMatchPercent(distance) {
 
 // Marka adına göre ikon belirle
 function getBrandIcon(name) {
+  if (!name) return "💻";
   const n = name.toLowerCase();
   if (n.includes("apple") || n.includes("mac")) return "🍎";
   if (n.includes("dell") || n.includes("alienware")) return "💻";
   if (n.includes("hp") || n.includes("hewlett")) return "🖥️";
   if (n.includes("lenovo") || n.includes("thinkpad")) return "💼";
-  if (n.includes("asus") || n.includes("rog")) return "⚡";
+  if (n.includes("asus") || n.includes("rog") || n.includes("tuf")) return "⚡";
   if (n.includes("acer")) return "🖱️";
-  if (n.includes("msi")) return "🎮";
+  if (n.includes("msi") || n.includes("katana")) return "🎮";
   if (n.includes("razer")) return "🐍";
   if (n.includes("surface") || n.includes("microsoft")) return "🪟";
   return "💻";
@@ -127,13 +128,15 @@ function App() {
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className="card-header">
-                  <span className="icon">{getBrandIcon(item.name)}</span>
+                  <span className="icon">
+                    {getBrandIcon(item.product_name)}
+                  </span>
                   <span className="match-badge">
                     %{getMatchPercent(item.distance)} Eşleşme
                   </span>
                 </div>
-                <h3 className="computer-name">{item.name}</h3>
-                <p className="specs">{item.description}</p>
+                <h3 className="computer-name">{item.product_name}</h3>
+                <p className="price">{item.price}</p>
                 <div className="card-footer">
                   <div className="distance-bar">
                     <div
@@ -143,6 +146,16 @@ function App() {
                       }}
                     ></div>
                   </div>
+                  {item.url && (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="view-btn"
+                    >
+                      Ürüne Git →
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
