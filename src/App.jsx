@@ -6,8 +6,10 @@ const API_URL = "https://api.alsana.site";
 
 // Benzerlik mesafesini yüzdeye çevir (düşük mesafe = yüksek eşleşme)
 function getMatchPercent(distance) {
-  const percent = Math.max(0, Math.min(100, (1 - distance) * 100));
-  return percent.toFixed(0);
+  const rawPercent = (1 - distance) * 100;
+  // 50-80 aralığını 0-100 aralığına normalize ediyoruz
+  const scaledPercent = ((rawPercent - 50) / (80 - 50)) * 100;
+  return Math.max(0, Math.min(100, scaledPercent)).toFixed(0);
 }
 
 // Marka adına göre ikon belirle
@@ -76,23 +78,20 @@ function App() {
       }
 
       const data = await res.json();
-      setResults(data);
+      setResults(data.products || []);
+      if (data.sessionId) setSessionId(data.sessionId);
       setSearched(true);
       setSearch("");
       setLoading(false);
 
       // Sonuçlar geldiyse RAG chat'i başlat
-      if (data.length > 0) {
+      if (data.products && data.products.length > 0) {
         setChatLoading(true);
         try {
-          const chatBody = { query: searchQuery };
-          if (cpuFilter) chatBody.cpuType = cpuFilter;
-          if (gpuFilter) chatBody.gpuType = gpuFilter;
-
-          const chatRes = await fetch(`${API_URL}/chat/start`, {
+          const chatRes = await fetch(`${API_URL}/chat/message`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(chatBody),
+            body: JSON.stringify({ sessionId: data.sessionId, query: searchQuery }),
           });
 
           if (!chatRes.ok) {
@@ -101,7 +100,6 @@ function App() {
           }
 
           const chatData = await chatRes.json();
-          setSessionId(chatData.sessionId);
           setChatMessages([
             { role: "user", content: searchQuery },
             { role: "assistant", content: chatData.response },
